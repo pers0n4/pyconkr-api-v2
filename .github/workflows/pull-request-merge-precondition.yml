@@ -13,6 +13,14 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8]
+    services:
+      db:
+        image: mysql
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ci
+        ports:
+          - 3306:3306
 
     steps:
       - uses: actions/checkout@v3
@@ -34,6 +42,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install pytest-cov
+
+      - name: check migrations
+        run: |
+          python manage.py migrate --settings=pyconkr.settings-ci
+          python manage.py makemigrations --settings=pyconkr.settings-ci --check --dry-run
 
       - name: run pytest
         run: |
